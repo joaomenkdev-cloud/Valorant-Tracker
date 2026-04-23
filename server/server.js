@@ -175,24 +175,41 @@ app.get('/api/mmr/:region/:name/:tag', async (req, res) => {
 
 /**
  * GET /api/mmr-history/:region/:name/:tag
- * Histórico de MMR para o gráfico de progressão
+ * Histórico de MMR para o gráfico de progressão — usa v2 da Henrik API
  * Ex: /api/mmr-history/br/ShadowStrike/BR1
  */
 app.get('/api/mmr-history/:region/:name/:tag', async (req, res) => {
   try {
     const { region, name, tag } = req.params;
-    const { data } = await henrikFetch(
-      `/valorant/v1/mmr-history/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
-      TTL.mmrHistory
-    );
+
+    // v2: /valorant/v2/mmr-history/{region}/pc/{name}/{tag}
+    // Fallback para v1 se v2 falhar (compatibilidade)
+    let data;
+    let isV2 = true;
+    try {
+      const result = await henrikFetch(
+        `/valorant/v2/mmr-history/${region}/pc/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
+        TTL.mmrHistory
+      );
+      data = result.data;
+    } catch {
+      isV2 = false;
+      const result = await henrikFetch(
+        `/valorant/v1/mmr-history/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
+        TTL.mmrHistory
+      );
+      data = result.data;
+    }
 
     // Normaliza para array [{date, elo, tier, tierName}]
+    // v2 usa campos: tier.id, tier.name, rr, last_change, elo, date, map.name
+    // v1 usa campos: currenttier, currenttierpatched, ranking_in_tier, mmr_change_to_last_game
     const history = (data.data || []).map(entry => ({
       matchId:   entry.match_id,
-      tier:      entry.currenttier,
-      tierName:  entry.currenttierpatched,
-      elo:       entry.ranking_in_tier,
-      mmrChange: entry.mmr_change_to_last_game,
+      tier:      isV2 ? entry.tier?.id        : entry.currenttier,
+      tierName:  isV2 ? entry.tier?.name      : entry.currenttierpatched,
+      elo:       isV2 ? entry.rr              : entry.ranking_in_tier,
+      mmrChange: isV2 ? entry.last_change     : entry.mmr_change_to_last_game,
       date:      entry.date,
       map:       entry.map?.name || '',
     })).reverse(); // Mais antigo primeiro (para o gráfico)
@@ -352,30 +369,36 @@ app.get('/api/match/:matchId', async (req, res) => {
 
 /**
  * GET /api/leaderboard/:region
- * Leaderboard da região (top ranked players)
+ * Leaderboard da região (top ranked players) — usa v3 da Henrik API
  * Query params:
- *   page - página (cada página tem ~200 jogadores)
+ *   page     - página (default 1)
+ *   platform - pc | console (default pc)
  * Ex: /api/leaderboard/br?page=1
  */
 app.get('/api/leaderboard/:region', async (req, res) => {
   try {
-    const { region }  = req.params;
-    const page        = parseInt(req.query.page) || 1;
+    const { region }    = req.params;
+    const page          = parseInt(req.query.page) || 1;
+    const platform      = req.query.platform || 'pc';
 
+    // v3: /valorant/v3/leaderboard/{region}/{platform}?page={page}
     const { data } = await henrikFetch(
-      `/valorant/v1/leaderboard/${region}?page=${page}`,
+      `/valorant/v3/leaderboard/${region}/${platform}?page=${page}`,
       TTL.leaderboard
     );
 
-    const players = (data.data || []).map((p, i) => ({
-      rank:        p.leaderboardRank    || ((page - 1) * 200) + i + 1,
-      name:        p.gameName           || 'Unknown',
-      tag:         p.tagLine            || 'VALE',
-      rankedRating:p.rankedRating       || 0,
-      wins:        p.numberOfWins       || 0,
-      tier:        p.competitiveTier    || 0,
-      tierName:    p.competitiveTierName|| 'Radiant',
-      puuid:       p.puuid              || '',
+    // Estrutura v3: data.data.players (diferente do v1 que era data.data diretamente)
+    const rawPlayers = data?.data?.players || [];
+
+    const players = rawPlayers.map((p, i) => ({
+      rank:        p.leaderboard_rank   || ((page - 1) * 200) + i + 1,
+      name:        p.is_anonymized ? 'Anonymous' : (p.name || 'Unknown'),
+      tag:         p.is_anonymized ? '----'      : (p.tag  || 'VALE'),
+      rankedRating:p.rr                || 0,
+      wins:        p.wins              || 0,
+      tier:        p.tier              || 27,
+      tierName:    p.tier === 27 ? 'Radiant' : (p.tier >= 24 ? 'Immortal' : 'Unknown'),
+      puuid:       p.puuid             || '',
     }));
 
     res.json({ players, page, region });
