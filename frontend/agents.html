@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VCI Analytics — Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar"></aside>
+
+<div class="main">
+  <header class="topbar" id="topbar"></header>
+
+  <main class="page-content">
+
+    <div class="ph">
+      <h2>Agent Analysis</h2>
+      <p>Performance breakdown by agent</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="mf">
+      <select class="f-sel" id="roleFilter">
+        <option value="">All Roles</option>
+        <option value="Duelist">Duelist</option>
+        <option value="Controller">Controller</option>
+        <option value="Sentinel">Sentinel</option>
+        <option value="Initiator">Initiator</option>
+      </select>
+      <select class="f-sel" id="agentSort">
+        <option value="matches">Sort: Most Played</option>
+        <option value="wr">Sort: Win Rate</option>
+        <option value="kd">Sort: K/D</option>
+        <option value="acs">Sort: ACS</option>
+      </select>
+    </div>
+
+    <!-- Agent cards grid (rendered by JS) -->
+    <div class="apg" id="agentsGrid"></div>
+
+  </main>
+</div>
+
+
+<script src="js/api.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/agents.js"></script>
+</body>
+</html>

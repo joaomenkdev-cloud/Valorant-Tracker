@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VCI Analytics — Leaderboards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar"></aside>
+
+<div class="main">
+  <header class="topbar" id="topbar"></header>
+
+  <main class="page-content">
+
+    <div class="ph">
+      <h2>Global Leaderboard</h2>
+      <p>Top ranked players this act — click any column to sort</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="lb-filters">
+      <select class="f-sel" id="lbReg">
+        <option value="">All Regions</option>
+        <option value="BR1">Brazil</option>
+        <option value="NA1">North America</option>
+        <option value="EU1">Europe</option>
+        <option value="KR1">Korea</option>
+      </select>
+
+      <select class="f-sel" id="lbRnk">
+        <option value="">All Ranks</option>
+        <option value="Radiant">Radiant</option>
+        <option value="Immortal 3">Immortal 3</option>
+        <option value="Immortal 2">Immortal 2</option>
+        <option value="Immortal 1">Immortal 1</option>
+      </select>
+
+      <div style="margin-left:auto;position:relative">
+        <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--txt3);pointer-events:none" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input type="text" class="s-input" id="lbQ" placeholder="Search player..." style="padding-left:30px;min-width:180px">
+      </div>
+    </div>
+
+    <!-- Leaderboard table (rendered by JS) -->
+    <div id="lbWrap"></div>
+
+  </main>
+</div>
+
+
+<script src="js/api.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/leaderboards.js"></script>
+</body>
+</html>

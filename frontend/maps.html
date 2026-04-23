@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VCI Analytics — Maps</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar"></aside>
+
+<div class="main">
+  <header class="topbar" id="topbar"></header>
+
+  <main class="page-content">
+
+    <div class="ph">
+      <h2>Map Statistics</h2>
+      <p>Win rates and performance per map</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="mf">
+      <select class="f-sel" id="mapSort">
+        <option value="matches">Sort: Most Played</option>
+        <option value="wr">Sort: Win Rate</option>
+        <option value="kd">Sort: K/D</option>
+        <option value="acs">Sort: ACS</option>
+      </select>
+    </div>
+
+    <!-- Map cards grid (rendered by JS) -->
+    <div class="mpg" id="mapsGrid"></div>
+
+  </main>
+</div>
+
+
+<script src="js/api.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/maps.js"></script>
+</body>
+</html>

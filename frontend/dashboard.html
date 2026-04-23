@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VCI Analytics — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar"></aside>
+
+<div class="main">
+  <header class="topbar" id="topbar"></header>
+
+  <main class="page-content">
+
+    <!-- Player Hero Banner -->
+    <div class="hero">
+      <div class="hero-emblem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+          <path d="M4 22h16"></path>
+        </svg>
+      </div>
+      <div class="hero-info">
+        <div class="hero-name" id="heroName">
+          —
+          <span class="hero-tag" id="heroTag"></span>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-meta-i">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+            <strong id="heroRegion">—</strong>
+          </div>
+          <div class="hero-meta-i">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect></svg>
+            <span id="heroEpisode">Competitive</span>
+          </div>
+          <div class="hero-meta-i">
+            Peak: <strong style="color:var(--yellow)" id="heroPeak">—</strong>
+          </div>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="hs" data-stat="rank">
+          <div class="hs-val clr-red" id="heroRank">—</div>
+          <div class="hs-lbl">Rank</div>
+        </div>
+        <div class="hs" data-stat="rr">
+          <div class="hs-val" id="heroRR">—</div>
+          <div class="hs-lbl">RR</div>
+        </div>
+        <div class="hs">
+          <div class="hs-val" id="heroMatches">—</div>
+          <div class="hs-lbl">Matches</div>
+        </div>
+        <div class="hs">
+          <div class="hs-val clr-green" id="heroLevel">—</div>
+          <div class="hs-lbl">Nível</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="sc" id="stat-wr">
+        <div class="sc-top" style="background:var(--green)"></div>
+        <div class="sc-lbl" style="color:var(--green)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          Win Rate
+        </div>
+        <div class="sc-val">—</div>
+        <div class="sc-sub">carregando...</div>
+      </div>
+      <div class="sc" id="stat-kd">
+        <div class="sc-top" style="background:var(--yellow)"></div>
+        <div class="sc-lbl" style="color:var(--yellow)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>
+          K/D Ratio
+        </div>
+        <div class="sc-val">—</div>
+        <div class="sc-sub">carregando...</div>
+      </div>
+      <div class="sc" id="stat-acs">
+        <div class="sc-top" style="background:var(--red)"></div>
+        <div class="sc-lbl" style="color:var(--red)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          Avg ACS
+        </div>
+        <div class="sc-val">—</div>
+        <div class="sc-sub">carregando...</div>
+      </div>
+      <div class="sc" id="stat-hs">
+        <div class="sc-top" style="background:var(--blue)"></div>
+        <div class="sc-lbl" style="color:var(--blue)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle></svg>
+          Headshot%
+        </div>
+        <div class="sc-val">—</div>
+        <div class="sc-sub">carregando...</div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="cg">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Rank Progression</div>
+            <div class="card-sub">MMR over time</div>
+          </div>
+          <div class="filter-tabs" id="mmrTabs">
+            <button class="ft" data-r="7">7D</button>
+            <button class="ft active" data-r="30">30D</button>
+            <button class="ft" data-r="60">60D</button>
+            <button class="ft" data-r="90">All</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap"><canvas id="mmrChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Performance Radar</div>
+            <div class="card-sub">vs Immortal average</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agents Table + Insights -->
+    <div class="dg">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Top Agents</div>
+            <div class="card-sub">By matches played</div>
+          </div>
+          <a class="va" href="agents.html">
+            View all
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="ag-tbl" id="dashAgents"></table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">AI Insights</div>
+            <div class="card-sub">Personalized analysis</div>
+          </div>
+        </div>
+        <div class="card-body" id="insightBox"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+
+<script src="js/api.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

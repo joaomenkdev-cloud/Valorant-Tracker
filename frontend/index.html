@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VCI Analytics — Buscar Jogador</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#0d1117; --bg2:#161b22; --bg3:#1c2333;
+      --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+      --red:#ff4655; --red-dim:rgba(255,70,85,0.14);
+      --green:#3ddcb0; --txt1:#ece8e1; --txt2:#9ba4b2; --txt3:#5c6575;
+    }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--txt1);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Fundo decorativo */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 800px 600px at 70% 20%, rgba(255,70,85,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 600px 400px at 20% 80%, rgba(79,158,255,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .container {
+      width: 100%; max-width: 480px;
+      position: relative; z-index: 1;
+    }
+
+    /* Logo */
+    .logo {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 40px;
+    }
+    .logo-icon {
+      width: 52px; height: 52px;
+      background: var(--red);
+      clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 30px rgba(255,70,85,0.4);
+    }
+    .logo-icon svg { width: 22px; height: 22px; color: #fff; }
+    .logo-text h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 32px; font-weight: 700; letter-spacing: 0.04em;
+    }
+    .logo-text span {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--txt3);
+    }
+
+    /* Card */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 26px;
+    }
+    .card h2 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 20px; font-weight: 700; letter-spacing: 0.03em;
+      margin-bottom: 6px;
+    }
+    .card p { font-size: 13px; color: var(--txt3); margin-bottom: 22px; }
+
+    /* Form */
+    .form-group { margin-bottom: 14px; }
+    label {
+      display: block;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--txt3);
+      margin-bottom: 6px;
+    }
+    .input-row { display: flex; gap: 8px; }
+    input[type=text], select {
+      font-family: 'Barlow', sans-serif;
+      padding: 10px 14px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--txt1);
+      font-size: 14px; outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type=text]:focus, select:focus { border-color: var(--red); }
+    .input-name { flex: 1; }
+    .input-tag  { width: 90px; }
+    select { cursor: pointer; min-width: 130px; }
+
+    .btn-search {
+      width: 100%; padding: 11px;
+      background: var(--red); border: none; border-radius: 6px;
+      color: #fff; font-family: 'Barlow', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      margin-top: 6px;
+    }
+    .btn-search:hover { opacity: 0.88; }
+    .btn-search:active { transform: scale(0.99); }
+    .btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Status message */
+    .status-msg {
+      display: none;
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px; font-weight: 600;
+      border-left: 3px solid transparent;
+    }
+    .status-ok   { background: rgba(61,220,176,0.1); border-left-color: var(--green); color: var(--green); }
+    .status-err  { background: rgba(255,70,85,0.1);  border-left-color: var(--red);   color: var(--red); }
+    .status-warn { background: rgba(245,197,24,0.1); border-left-color: #f5c518;      color: #f5c518; }
+    .status-info { background: rgba(79,158,255,0.1); border-left-color: #4f9eff;      color: #4f9eff; }
+
+    /* Hint */
+    .hint {
+      margin-top: 16px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px; color: var(--txt3);
+      line-height: 1.6;
+    }
+    .hint strong { color: var(--txt2); }
+
+    /* Examples */
+    .examples { margin-top: 18px; }
+    .examples p { font-size: 11px; color: var(--txt3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+    .example-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .example-tag {
+      padding: 4px 10px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 5px; font-size: 11px; font-weight: 600; color: var(--txt2);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .example-tag:hover { border-color: var(--red); color: var(--red); }
+
+    @media (max-width: 480px) {
+      .input-row { flex-direction: column; }
+      .input-tag { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <h1>VCI Analytics</h1>
+      <span>Valorant Coach Insights</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Buscar Jogador</h2>
+    <p>Digite o Riot ID para visualizar estatísticas detalhadas e histórico de partidas.</p>
+
+    <form id="searchForm">
+      <div class="form-group">
+        <label>Riot ID</label>
+        <div class="input-row">
+          <input
+            class="input-name"
+            type="text"
+            id="playerName"
+            placeholder="ShadowStrike"
+            autocomplete="off"
+            required
+          >
+          <input
+            class="input-tag"
+            type="text"
+            id="playerTag"
+            placeholder="BR1"
+            autocomplete="off"
+            required
+          >
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Região</label>
+        <select id="regionSelect">
+          <option value="br" selected>🇧🇷 Brazil (SA)</option>
+          <option value="na">🇺🇸 North America</option>
+          <option value="eu">🇪🇺 Europe</option>
+          <option value="ap">🌏 Asia Pacific</option>
+          <option value="kr">🇰🇷 Korea</option>
+          <option value="latam">🌎 LATAM</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-search" id="btnSearch">
+        Buscar Jogador
+      </button>
+    </form>
+
+    <div class="status-msg" id="statusMsg"></div>
+
+    <div class="hint">
+      <strong>Como funciona:</strong> Digite o nome e a tag separados (#).<br>
+      Exemplo: <strong>ShadowStrike</strong> + <strong>BR1</strong>
+    </div>
+
+    <div class="examples">
+      <p>Exemplos rápidos</p>
+      <div class="example-tags">
+        <div class="example-tag" data-name="TenZ" data-tag="000" data-region="na">TenZ#000 (NA)</div>
+        <div class="example-tag" data-name="Aspas" data-tag="BR1" data-region="br">Aspas#BR1 (BR)</div>
+        <div class="example-tag" data-name="cNed" data-tag="7777" data-region="eu">cNed#7777 (EU)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/search.js"></script>
+<script>
+  // Preenche os exemplos clicáveis
+  document.querySelectorAll('.example-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.getElementById('playerName').value = tag.dataset.name;
+      document.getElementById('playerTag').value  = tag.dataset.tag;
+      document.getElementById('regionSelect').value = tag.dataset.region;
+    });
+  });
+
+  // Suporte a "Nome#Tag" colado de uma vez
+  document.getElementById('playerName').addEventListener('input', function () {
+    if (this.value.includes('#')) {
+      const [n, t] = this.value.split('#');
+      this.value = n;
+      if (t) document.getElementById('playerTag').value = t;
+      document.getElementById('playerTag').focus();
+    }
+  });
+</script>
+</body>
+</html>
