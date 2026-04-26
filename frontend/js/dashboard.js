@@ -5,7 +5,11 @@
 document.addEventListener('DOMContentLoaded', async () => {
   initShared('dashboard');
 
-  if (!hasSession()) { window.location.href = 'index.html'; return; }
+  if (!hasSession()) {
+    showToast('Search for a player first', 'err');
+    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+    return;
+  }
 
   const { name, tag, region } = getSession();
   updateSidebarPlayer(name, tag);

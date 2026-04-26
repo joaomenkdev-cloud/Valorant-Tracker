@@ -6,12 +6,14 @@
 /* ---- SIDEBAR HTML (injected into every page) ---- */
 const SIDEBAR_HTML = `
   <div class="sb-logo">
-    <div class="sb-logo-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-      </svg>
-    </div>
-    <div class="sb-logo-txt"><h1>VCI</h1><span>Analytics</span></div>
+    <a href="index.html" class="sb-logo-link">
+      <div class="sb-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      <div class="sb-logo-txt"><h1>VCI</h1><span>Analytics</span></div>
+    </a>
   </div>
 
   <div class="sb-search">
@@ -25,6 +27,13 @@ const SIDEBAR_HTML = `
 
   <div class="sb-section">Navigation</div>
   <nav class="sb-nav">
+    <a class="nav-item" href="index.html" data-page="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      Home
+    </a>
     <a class="nav-item" href="dashboard.html" data-page="dashboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
@@ -38,7 +47,6 @@ const SIDEBAR_HTML = `
         <polyline points="14 2 14 8 20 8"></polyline>
       </svg>
       Match History
-      <span class="nav-badge">20</span>
     </a>
     <a class="nav-item" href="agents.html" data-page="agents">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -77,16 +85,9 @@ const SIDEBAR_HTML = `
   </nav>
 
   <div class="sb-footer">
-    <a class="sb-user" href="settings.html">
-      <div class="sb-avatar">S</div>
-      <div class="sb-uinfo">
-        <div class="sb-uname">ShadowStrike#BR1</div>
-        <div class="sb-urank">Immortal 3 · 752 RR</div>
-      </div>
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--txt3);flex-shrink:0">
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </svg>
-    </a>
+    <div class="sb-user-wrapper" id="sbUserWrapper">
+      <!-- Rendered by JS based on session -->
+    </div>
   </div>
 `;
 
@@ -100,7 +101,7 @@ const TOPBAR_HTML = `
     </svg>
   </button>
   <div class="tb-breadcrumb">
-    <span>VCI</span>
+    <a href="index.html" style="color:var(--txt3);text-decoration:none">VCI</a>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <polyline points="9 18 15 12 9 6"></polyline>
     </svg>
@@ -135,6 +136,7 @@ const TOPBAR_HTML = `
 
 /* ---- PAGE TITLES ---- */
 const PAGE_TITLES = {
+  home:         'Home',
   dashboard:    'Dashboard',
   matches:      'Match History',
   agents:       'Agents',
@@ -173,7 +175,14 @@ function initShared(currentPage) {
   });
 
   // Region select
-  document.getElementById('regionSel')?.addEventListener('change', function () {
+  const regionSel = document.getElementById('regionSel');
+  const session = getSession();
+  if (regionSel && session.region) {
+    regionSel.value = session.region;
+    document.getElementById('regionLbl').textContent = regionSel.options[regionSel.selectedIndex].text;
+  }
+  
+  regionSel?.addEventListener('change', function () {
     document.getElementById('regionLbl').textContent = this.options[this.selectedIndex].text;
     showToast('Region changed to ' + this.options[this.selectedIndex].text);
   });
@@ -184,12 +193,66 @@ function initShared(currentPage) {
     document.querySelector('#notifBtn .dot')?.remove();
   });
 
-  // Sidebar search → leaderboards page
+  // Sidebar search
   document.getElementById('sbSearch')?.addEventListener('keypress', e => {
     if (e.key === 'Enter' && e.target.value.trim()) {
-      window.location.href = `leaderboards.html?q=${encodeURIComponent(e.target.value.trim())}`;
+      const val = e.target.value.trim();
+      // If contains #, search player, else go to leaderboards
+      if (val.includes('#')) {
+        const [name, tag] = val.split('#');
+        if (name && tag) {
+          setSession(name, tag, session.region || 'br');
+          window.location.href = 'dashboard.html';
+          return;
+        }
+      }
+      window.location.href = `leaderboards.html?q=${encodeURIComponent(val)}`;
     }
   });
+
+  // Render user info in sidebar
+  renderSidebarUser();
+}
+
+/* ---- RENDER SIDEBAR USER ---- */
+function renderSidebarUser() {
+  const wrapper = document.getElementById('sbUserWrapper');
+  if (!wrapper) return;
+
+  const session = getSession();
+  
+  if (session.name && session.tag) {
+    wrapper.innerHTML = `
+      <a class="sb-user" href="settings.html">
+        <div class="sb-avatar" style="background:linear-gradient(135deg, #ff4655, #f5c518)">${session.name[0].toUpperCase()}</div>
+        <div class="sb-uinfo">
+          <div class="sb-uname">${session.name}#${session.tag}</div>
+          <div class="sb-urank">Tracking active</div>
+        </div>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--txt3);flex-shrink:0">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+    `;
+  } else {
+    wrapper.innerHTML = `
+      <a class="sb-user" href="index.html" style="background:var(--bg3);border-radius:var(--r)">
+        <div class="sb-avatar" style="background:var(--bg4)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </div>
+        <div class="sb-uinfo">
+          <div class="sb-uname" style="color:var(--txt2)">Search Player</div>
+          <div class="sb-urank">Track any Riot ID</div>
+        </div>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--txt3);flex-shrink:0">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+    `;
+  }
 }
 
 /* ---- TOAST ---- */
@@ -230,4 +293,16 @@ function rkNumClass(i) {
   if (i === 2) return 's';
   if (i === 3) return 'b';
   return '';
+}
+
+/* ---- CHECK SESSION FOR PLAYER-SPECIFIC PAGES ---- */
+function requireSession(redirectUrl = 'index.html') {
+  if (!hasSession()) {
+    showToast('Search for a player first', 'err');
+    setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, 1000);
+    return false;
+  }
+  return true;
 }

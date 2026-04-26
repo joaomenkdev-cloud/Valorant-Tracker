@@ -1,40 +1,36 @@
 /* ============================================================
    VCI ANALYTICS — SEARCH.JS
-   Página de busca de jogador (landing page)
+   Search functionality for landing page (legacy support)
 ============================================================ */
 
+// This file is kept for backward compatibility
+// Main search logic is now in landing.js
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Don't auto-redirect anymore - users can browse freely
+  // Only redirect if explicitly on a player-specific page without session
 
-  // Se já tem sessão ativa, redireciona direto para o dashboard
-  if (hasSession()) {
-    window.location.href = 'dashboard.html';
-    return;
-  }
+  const form = document.getElementById('searchForm');
+  const inputName = document.getElementById('playerName');
+  const inputTag = document.getElementById('playerTag');
+  const regionSel = document.getElementById('regionSelect');
+  const statusMsg = document.getElementById('statusMsg');
+  const btnSearch = document.getElementById('btnSearch');
 
-  const form       = document.getElementById('searchForm');
-  const input      = document.getElementById('playerInput');
-  const regionSel  = document.getElementById('regionSelect');
-  const statusMsg  = document.getElementById('statusMsg');
-  const btnSearch  = document.getElementById('btnSearch');
+  // Skip if elements don't exist (handled by landing.js)
+  if (!form || !inputTag) return;
 
-  form?.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     await searchPlayer();
   });
 
   async function searchPlayer() {
-    const raw = (input?.value || '').trim();
-    if (!raw) return showStatus('Digite o nome do jogador', 'warn');
+    const name = (inputName?.value || '').trim();
+    const tag = (inputTag?.value || '').trim();
 
-    // Suporta "Nome#TAG" ou só "Nome" (usa tag padrão)
-    let name, tag;
-    if (raw.includes('#')) {
-      [name, tag] = raw.split('#');
-    } else {
-      name = raw; tag = '0000'; // fallback
-    }
-
-    if (!name || !tag) return showStatus('Formato inválido. Use: Nome#TAG', 'err');
+    if (!name) return showStatus('Digite o nome do jogador', 'warn');
+    if (!tag) return showStatus('Digite a tag do jogador', 'warn');
 
     const region = regionSel?.value || 'br';
 
@@ -42,24 +38,23 @@ document.addEventListener('DOMContentLoaded', () => {
     showStatus('Buscando jogador...', 'info');
 
     try {
-      // Verifica se a conta existe
       const account = await fetchAccount(name, tag);
-
-      // Salva a sessão
       setSession(account.name, account.tag, account.region || region);
+      showStatus(`Found: ${account.name}#${account.tag}`, 'ok');
 
-      showStatus(`✅ Encontrado: ${account.name}#${account.tag}`, 'ok');
-
-      // Redireciona após 800ms
       setTimeout(() => {
         window.location.href = 'dashboard.html';
       }, 800);
 
     } catch (err) {
-      if (err.message.includes('404') || err.message.toLowerCase().includes('not found')) {
-        showStatus('❌ Jogador não encontrado. Verifique o nome e a tag.', 'err');
+      if (
+        err.message.includes('404') ||
+        err.message.toLowerCase().includes('not found') ||
+        err.message.toLowerCase().includes('não encontrado')
+      ) {
+        showStatus('Player not found. Check the name and tag.', 'err');
       } else {
-        showStatus(`❌ Erro: ${err.message}`, 'err');
+        showStatus(`Error: ${err.message}`, 'err');
       }
       setLoading(false);
     }
@@ -68,14 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function showStatus(msg, type = 'info') {
     if (!statusMsg) return;
     statusMsg.textContent = msg;
-    statusMsg.className   = `status-msg status-${type}`;
+    statusMsg.className = `status-msg status-${type}`;
     statusMsg.style.display = 'block';
   }
 
   function setLoading(loading) {
     if (btnSearch) {
-      btnSearch.disabled     = loading;
-      btnSearch.textContent  = loading ? 'Buscando...' : 'Buscar Jogador';
+      btnSearch.disabled = loading;
+      btnSearch.textContent = loading ? 'Searching...' : 'Search Player';
     }
   }
 });

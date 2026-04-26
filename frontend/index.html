@@ -3,258 +3,335 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VCI Analytics — Buscar Jogador</title>
+  <title>VCI Analytics - Valorant Tracker</title>
+  <meta name="description" content="Track your Valorant stats, leaderboards, match history and more. Search any player by Riot ID.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-    :root {
-      --bg:#0d1117; --bg2:#161b22; --bg3:#1c2333;
-      --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
-      --red:#ff4655; --red-dim:rgba(255,70,85,0.14);
-      --green:#3ddcb0; --txt1:#ece8e1; --txt2:#9ba4b2; --txt3:#5c6575;
-    }
-    body {
-      font-family: 'Barlow', sans-serif;
-      background: var(--bg);
-      color: var(--txt1);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      position: relative;
-      overflow: hidden;
-    }
-    /* Fundo decorativo */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(ellipse 800px 600px at 70% 20%, rgba(255,70,85,0.06) 0%, transparent 70%),
-        radial-gradient(ellipse 600px 400px at 20% 80%, rgba(79,158,255,0.04) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .container {
-      width: 100%; max-width: 480px;
-      position: relative; z-index: 1;
-    }
-
-    /* Logo */
-    .logo {
-      display: flex; align-items: center; gap: 14px;
-      margin-bottom: 40px;
-    }
-    .logo-icon {
-      width: 52px; height: 52px;
-      background: var(--red);
-      clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 30px rgba(255,70,85,0.4);
-    }
-    .logo-icon svg { width: 22px; height: 22px; color: #fff; }
-    .logo-text h1 {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 32px; font-weight: 700; letter-spacing: 0.04em;
-    }
-    .logo-text span {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.15em;
-      text-transform: uppercase; color: var(--txt3);
-    }
-
-    /* Card */
-    .card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 28px 26px;
-    }
-    .card h2 {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 20px; font-weight: 700; letter-spacing: 0.03em;
-      margin-bottom: 6px;
-    }
-    .card p { font-size: 13px; color: var(--txt3); margin-bottom: 22px; }
-
-    /* Form */
-    .form-group { margin-bottom: 14px; }
-    label {
-      display: block;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--txt3);
-      margin-bottom: 6px;
-    }
-    .input-row { display: flex; gap: 8px; }
-    input[type=text], select {
-      font-family: 'Barlow', sans-serif;
-      padding: 10px 14px;
-      background: var(--bg3); border: 1px solid var(--border);
-      border-radius: 6px; color: var(--txt1);
-      font-size: 14px; outline: none;
-      transition: border-color 0.15s;
-    }
-    input[type=text]:focus, select:focus { border-color: var(--red); }
-    .input-name { flex: 1; }
-    .input-tag  { width: 90px; }
-    select { cursor: pointer; min-width: 130px; }
-
-    .btn-search {
-      width: 100%; padding: 11px;
-      background: var(--red); border: none; border-radius: 6px;
-      color: #fff; font-family: 'Barlow', sans-serif;
-      font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
-      text-transform: uppercase; cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-      margin-top: 6px;
-    }
-    .btn-search:hover { opacity: 0.88; }
-    .btn-search:active { transform: scale(0.99); }
-    .btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* Status message */
-    .status-msg {
-      display: none;
-      margin-top: 14px;
-      padding: 10px 14px;
-      border-radius: 6px;
-      font-size: 13px; font-weight: 600;
-      border-left: 3px solid transparent;
-    }
-    .status-ok   { background: rgba(61,220,176,0.1); border-left-color: var(--green); color: var(--green); }
-    .status-err  { background: rgba(255,70,85,0.1);  border-left-color: var(--red);   color: var(--red); }
-    .status-warn { background: rgba(245,197,24,0.1); border-left-color: #f5c518;      color: #f5c518; }
-    .status-info { background: rgba(79,158,255,0.1); border-left-color: #4f9eff;      color: #4f9eff; }
-
-    /* Hint */
-    .hint {
-      margin-top: 16px;
-      padding: 12px 14px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 12px; color: var(--txt3);
-      line-height: 1.6;
-    }
-    .hint strong { color: var(--txt2); }
-
-    /* Examples */
-    .examples { margin-top: 18px; }
-    .examples p { font-size: 11px; color: var(--txt3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
-    .example-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-    .example-tag {
-      padding: 4px 10px;
-      background: var(--bg3); border: 1px solid var(--border);
-      border-radius: 5px; font-size: 11px; font-weight: 600; color: var(--txt2);
-      cursor: pointer; transition: all 0.15s;
-    }
-    .example-tag:hover { border-color: var(--red); color: var(--red); }
-
-    @media (max-width: 480px) {
-      .input-row { flex-direction: column; }
-      .input-tag { width: 100%; }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/landing.css">
 </head>
-<body>
+<body class="landing-page">
 
-<div class="container">
-  <div class="logo">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-      </svg>
-    </div>
-    <div class="logo-text">
-      <h1>VCI Analytics</h1>
-      <span>Valorant Coach Insights</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Buscar Jogador</h2>
-    <p>Digite o Riot ID para visualizar estatísticas detalhadas e histórico de partidas.</p>
-
-    <form id="searchForm">
-      <div class="form-group">
-        <label>Riot ID</label>
-        <div class="input-row">
-          <input
-            class="input-name"
-            type="text"
-            id="playerName"
-            placeholder="ShadowStrike"
-            autocomplete="off"
-            required
-          >
-          <input
-            class="input-tag"
-            type="text"
-            id="playerTag"
-            placeholder="BR1"
-            autocomplete="off"
-            required
-          >
-        </div>
+<!-- Navigation -->
+<header class="landing-nav">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
       </div>
+      <div class="nav-logo-text">
+        <span class="nav-logo-title">VCI Analytics</span>
+        <span class="nav-logo-sub">Valorant Tracker</span>
+      </div>
+    </a>
 
-      <div class="form-group">
-        <label>Região</label>
-        <select id="regionSelect">
-          <option value="br" selected>🇧🇷 Brazil (SA)</option>
-          <option value="na">🇺🇸 North America</option>
-          <option value="eu">🇪🇺 Europe</option>
-          <option value="ap">🌏 Asia Pacific</option>
-          <option value="kr">🇰🇷 Korea</option>
-          <option value="latam">🌎 LATAM</option>
+    <nav class="nav-links">
+      <a href="leaderboards.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          <path d="M4 22h16"></path>
+        </svg>
+        Leaderboards
+      </a>
+      <a href="agents.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+        </svg>
+        Agents
+      </a>
+      <a href="maps.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+        </svg>
+        Maps
+      </a>
+    </nav>
+
+    <div class="nav-actions">
+      <div class="nav-region">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+        </svg>
+        <select id="navRegion">
+          <option value="br" selected>Brazil</option>
+          <option value="na">North America</option>
+          <option value="eu">Europe</option>
+          <option value="ap">Asia Pacific</option>
+          <option value="kr">Korea</option>
+          <option value="latam">LATAM</option>
         </select>
       </div>
-
-      <button type="submit" class="btn-search" id="btnSearch">
-        Buscar Jogador
-      </button>
-    </form>
-
-    <div class="status-msg" id="statusMsg"></div>
-
-    <div class="hint">
-      <strong>Como funciona:</strong> Digite o nome e a tag separados (#).<br>
-      Exemplo: <strong>ShadowStrike</strong> + <strong>BR1</strong>
     </div>
 
-    <div class="examples">
-      <p>Exemplos rápidos</p>
-      <div class="example-tags">
-        <div class="example-tag" data-name="TenZ" data-tag="000" data-region="na">TenZ#000 (NA)</div>
-        <div class="example-tag" data-name="Aspas" data-tag="BR1" data-region="br">Aspas#BR1 (BR)</div>
-        <div class="example-tag" data-name="cNed" data-tag="7777" data-region="eu">cNed#7777 (EU)</div>
+    <button class="nav-mobile-btn" id="navMobileBtn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="leaderboards.html" class="mobile-menu-link">Leaderboards</a>
+  <a href="agents.html" class="mobile-menu-link">Agents</a>
+  <a href="maps.html" class="mobile-menu-link">Maps</a>
+</div>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-bg">
+    <div class="hero-gradient"></div>
+    <div class="hero-pattern"></div>
+  </div>
+  
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Episode 10 Act 1 Tracking
+    </div>
+    
+    <h1 class="hero-title">
+      Track Your <span class="text-gradient">Valorant</span> Journey
+    </h1>
+    
+    <p class="hero-subtitle">
+      Detailed stats, match history, leaderboards and AI-powered insights to improve your game.
+    </p>
+
+    <!-- Search Box -->
+    <div class="search-box">
+      <form id="searchForm" class="search-form">
+        <div class="search-input-group">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input 
+            type="text" 
+            id="playerName" 
+            class="search-input" 
+            placeholder="Search Riot ID (e.g., TenZ#000)"
+            autocomplete="off"
+          >
+          <select id="regionSelect" class="search-region">
+            <option value="br">BR</option>
+            <option value="na">NA</option>
+            <option value="eu">EU</option>
+            <option value="ap">AP</option>
+            <option value="kr">KR</option>
+            <option value="latam">LATAM</option>
+          </select>
+          <button type="submit" class="search-btn" id="btnSearch">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+        <div class="search-status" id="statusMsg"></div>
+      </form>
+
+      <div class="search-examples">
+        <span class="examples-label">Try:</span>
+        <button class="example-btn" data-name="TenZ" data-tag="000" data-region="na">TenZ#000</button>
+        <button class="example-btn" data-name="Aspas" data-tag="BR1" data-region="br">Aspas#BR1</button>
+        <button class="example-btn" data-name="cNed" data-tag="7777" data-region="eu">cNed#7777</button>
+      </div>
+    </div>
+
+    <!-- Stats Counter -->
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-value" id="statPlayers">2.4M+</div>
+        <div class="hero-stat-label">Players Tracked</div>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-value" id="statMatches">18M+</div>
+        <div class="hero-stat-label">Matches Analyzed</div>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-value" id="statRegions">6</div>
+        <div class="hero-stat-label">Regions</div>
       </div>
     </div>
   </div>
-</div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Everything You Need</h2>
+      <p class="section-subtitle">Comprehensive tools to analyze and improve your gameplay</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--red-dim); color: var(--red);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+        </div>
+        <h3 class="feature-title">Live Stats</h3>
+        <p class="feature-desc">Real-time tracking of your rank, MMR, win rate, and performance metrics.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--green-dim); color: var(--green);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+        </div>
+        <h3 class="feature-title">Match History</h3>
+        <p class="feature-desc">Detailed breakdown of every match with KDA, ACS, headshot percentage and more.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--blue-dim); color: var(--blue);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <h3 class="feature-title">Agent Analysis</h3>
+        <p class="feature-desc">See your performance with each agent including win rates and role breakdowns.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--yellow-dim); color: var(--yellow);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+            <path d="M4 22h16"></path>
+          </svg>
+        </div>
+        <h3 class="feature-title">Leaderboards</h3>
+        <p class="feature-desc">Regional rankings showing the top players in Radiant and Immortal tiers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Regional Leaderboards Preview -->
+<section class="leaderboards-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Regional Leaderboards</h2>
+      <p class="section-subtitle">Top players across all regions</p>
+    </div>
+
+    <div class="lb-tabs">
+      <button class="lb-tab active" data-region="br">
+        <span class="lb-tab-flag">BR</span>
+        Brazil
+      </button>
+      <button class="lb-tab" data-region="na">
+        <span class="lb-tab-flag">NA</span>
+        North America
+      </button>
+      <button class="lb-tab" data-region="eu">
+        <span class="lb-tab-flag">EU</span>
+        Europe
+      </button>
+      <button class="lb-tab" data-region="ap">
+        <span class="lb-tab-flag">AP</span>
+        Asia Pacific
+      </button>
+    </div>
+
+    <div class="lb-preview-card">
+      <div class="lb-preview-header">
+        <div class="lb-preview-title">Top 5 Players</div>
+        <a href="leaderboards.html" class="lb-view-all">
+          View Full Leaderboard
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+      </div>
+      <div class="lb-preview-list" id="lbPreviewList">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Popular Agents Section -->
+<section class="agents-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Popular Agents</h2>
+      <p class="section-subtitle">Most played agents this act</p>
+    </div>
+
+    <div class="agents-grid" id="agentsGrid">
+      <!-- Rendered by JS -->
+    </div>
+
+    <div class="section-cta">
+      <a href="agents.html" class="cta-btn">
+        View All Agents
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="landing-footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <div class="nav-logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <div class="nav-logo-text">
+            <span class="nav-logo-title">VCI Analytics</span>
+            <span class="nav-logo-sub">Valorant Tracker</span>
+          </div>
+        </div>
+        <p class="footer-desc">Track your Valorant journey with detailed stats, match history, and AI-powered insights.</p>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4 class="footer-col-title">Features</h4>
+          <a href="leaderboards.html">Leaderboards</a>
+          <a href="agents.html">Agents</a>
+          <a href="maps.html">Maps</a>
+        </div>
+        <div class="footer-col">
+          <h4 class="footer-col-title">Regions</h4>
+          <a href="leaderboards.html?region=br">Brazil</a>
+          <a href="leaderboards.html?region=na">North America</a>
+          <a href="leaderboards.html?region=eu">Europe</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>VCI Analytics is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games.</p>
+    </div>
+  </div>
+</footer>
 
 <script src="js/api.js"></script>
-<script src="js/search.js"></script>
-<script>
-  // Preenche os exemplos clicáveis
-  document.querySelectorAll('.example-tag').forEach(tag => {
-    tag.addEventListener('click', () => {
-      document.getElementById('playerName').value = tag.dataset.name;
-      document.getElementById('playerTag').value  = tag.dataset.tag;
-      document.getElementById('regionSelect').value = tag.dataset.region;
-    });
-  });
-
-  // Suporte a "Nome#Tag" colado de uma vez
-  document.getElementById('playerName').addEventListener('input', function () {
-    if (this.value.includes('#')) {
-      const [n, t] = this.value.split('#');
-      this.value = n;
-      if (t) document.getElementById('playerTag').value = t;
-      document.getElementById('playerTag').focus();
-    }
-  });
-</script>
+<script src="js/landing.js"></script>
 </body>
 </html>
